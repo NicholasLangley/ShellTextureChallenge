@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class Shell : MonoBehaviour
 {
-    
     public bool updateStatics;
 
     //Number of shells generated
@@ -51,6 +50,9 @@ public class Shell : MonoBehaviour
 
     private Vector3 displacementDirection = new Vector3(0, 0, 0);
 
+    public AudioSource audioSource;
+    public AudioTexturizer audioTex;
+
     void OnEnable()
     {
         createShellArray(shellCount);
@@ -66,6 +68,17 @@ public class Shell : MonoBehaviour
 
     void Update()
     {
+        //NEed to recreate whole array if number of shells changes
+        if (shells.Length != shellCount)
+        {
+            for (int i = 0; i < shells.Length; i++)
+            {
+                Destroy(shells[i]);
+            }
+            shells = null;
+            createShellArray(shellCount);
+        }
+
         float velocity = 1.0f;
 
         Vector3 direction = new Vector3(0, 0, 0);
@@ -89,20 +102,13 @@ public class Shell : MonoBehaviour
 
         Shader.SetGlobalVector("_DisplacementDirection", displacementDirection);
 
+        updateAudioTexture();
+
         this.transform.localPosition += direction * velocity * Time.deltaTime;
 
         if (updateStatics)
         {
-            //NEed to recreate whole array if number of shells changes
-            if (shells.Length != shellCount)
-            {
-                for (int i = 0; i < shells.Length; i++)
-                {
-                    Destroy(shells[i]);
-                }
-                shells = null;
-                createShellArray(shellCount);
-            }
+           
 
             for (int i = 0; i < shellCount; ++i)
             {
@@ -142,5 +148,15 @@ public class Shell : MonoBehaviour
             //shells[i].transform.localRotation = Quaternion.Euler(90, 0, 0);
             shells[i].transform.SetParent(transform, false);
         }
+    }
+
+    private void updateAudioTexture()
+    {
+        for (int i = 0; i < shellCount; ++i)
+        {
+            //Set shader variables
+            shells[i].GetComponent<MeshRenderer>().material.SetTexture("_AudioTex", audioTex.audioTexture);
+        }
+            
     }
 }

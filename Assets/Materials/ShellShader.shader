@@ -2,6 +2,10 @@
 
 Shader "Custom/My Shader"
 {
+	Properties {
+		_AudioTex ("Audio Texture", 2D) = "white" {}
+	}
+
 		SubShader
 	{
 		Pass
@@ -9,6 +13,8 @@ Shader "Custom/My Shader"
 			Tags {
 				"LightMode" = "ForwardBase"
 			}
+
+			
 
 			Cull Off
 			CGPROGRAM
@@ -18,7 +24,7 @@ Shader "Custom/My Shader"
 
 			//#include "UnityCG.cginc"
 			#include "UnityStandardBRDF.cginc"
-
+			
 			int _Density; //Controls how many blades there are
 			int _ShellCount; //The total amount of Shells rendered
 			int _ShellIndex;  //The position of the shell in the hierarchy, higher indexes are further from base
@@ -30,6 +36,8 @@ Shader "Custom/My Shader"
 			float4 _ShellColor; // The color of the shells
 			float _Attenuation; //How fast the ambientOcclusion takes effect
 			float _OcclusionBias;// adds a bit of bias to the ambient occlusion so it doesn't hit pure black at the bottom shell
+
+			sampler2D _AudioTex; //audio visualizer texture
 
 			struct VertexData {
 				float4 position : POSITION;
@@ -59,7 +67,12 @@ Shader "Custom/My Shader"
 			v2f MyVertexProgram(VertexData v) {
 				v2f i;
 				float shellHeight = (float)_ShellIndex / (float)_ShellCount;
-				i.position = UnityObjectToClipPos(v.position + v.normal * shellHeight * _ShellLength);
+
+				//audio visualizer
+				float4 audioDisplacement = tex2Dlod(_AudioTex, float4(v.uv, 0.0, 0.0));
+				float audioD = 1.0 + audioDisplacement.r * 10;
+
+				i.position = UnityObjectToClipPos(v.position + (v.normal * shellHeight * _ShellLength * audioD));
 				i.position.xyz += _DisplacementDirection * pow(_DisplacementStrength * shellHeight, _Curvature);
 				i.uv = v.uv;
 				i.normal = UnityObjectToWorldNormal(v.normal);
@@ -95,6 +108,11 @@ Shader "Custom/My Shader"
 				ambientOcclusion += _OcclusionBias;
 				ambientOcclusion = saturate(ambientOcclusion);
 
+				//audio visualizer
+				float4 audioDisplacement = tex2Dlod(_AudioTex, float4(i.uv, 0.0, 0.0));
+				float audioD = audioDisplacement.r;
+				albedo.r += audioD;
+				albedo.b += audioD;
 
 				float3 diffuse = albedo * lightColor * halfLambert * ambientOcclusion;
 				return float4(diffuse, 1);
