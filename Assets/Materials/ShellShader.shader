@@ -70,7 +70,7 @@ Shader "Custom/My Shader"
 
 				//audio visualizer
 				float4 audioDisplacement = tex2Dlod(_AudioTex, float4(v.uv, 0.0, 0.0));
-				float audioD = 1.0 + audioDisplacement.r * 10;
+				float audioD = 1 + audioDisplacement.r * 5;
 
 				i.position = UnityObjectToClipPos(v.position + (v.normal * shellHeight * _ShellLength * audioD));
 				i.position.xyz += _DisplacementDirection * pow(_DisplacementStrength * shellHeight, _Curvature);

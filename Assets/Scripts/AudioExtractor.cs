@@ -1,12 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 
 public class AudioExtractor : MonoBehaviour
 {
-    public AudioSource _audio;
+    [SerializeField] Lasp.SpectrumAnalyzer _input = null;
+    [SerializeField] bool _logScale = true;
 
-    float[] _spectrumData;
+    public NativeArray<float> _spectrumData;
+
+    public int spectrumResolution = 512;
 
     public float[] spectrumBlocks;
 
@@ -16,9 +20,12 @@ public class AudioExtractor : MonoBehaviour
 
     int bandSize = 8;
 
+    public bool disableOutputSound = true;
+
     void OnEnable()
     {
-        _spectrumData = new float[512];
+        _input.resolution = spectrumResolution;
+
         spectrumBlocks = new float[bandSize];
         bufferedBlocks = new float[bandSize];
         bufferDecay = new float[bandSize];
@@ -27,23 +34,16 @@ public class AudioExtractor : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        getAudioSpectrum();
+        _spectrumData = _logScale ? _input.logSpectrumArray : _input.spectrumArray;
+        Debug.Log(_spectrumData.Length);
+        //getAudioSpectrum();
         getSpectrumBlocks();
         bufferBlocks();
     }
 
-    void getAudioSpectrum()
-    {
-        _audio.GetSpectrumData(_spectrumData, 0, FFTWindow.BlackmanHarris); 
-    }
 
     void getSpectrumBlocks()
     {
-        
-        //spectrumBlocks[0] = (_spectrumData[0] + _spectrumData[1]) / 2.0f;
-        //spectrumBlocks[1] = (_spectrumData[2] + _spectrumData[3]) / 2.0f;
-        //spectrumBlocks[2] = (_spectrumData[4] + _spectrumData[5]) / 2.0f;
-        //spectrumBlocks[3] = (_spectrumData[6] + _spectrumData[7])/ 2.0f;
 
         int count = 0;
         for (int block = 0; block < spectrumBlocks.Length; block++)
@@ -52,7 +52,7 @@ public class AudioExtractor : MonoBehaviour
             int samplesToAdd = (int)Mathf.Pow(2, block);
             for (int j =0; j < samplesToAdd; j++)
             {
-                average += _spectrumData[count++] * (count);
+                average += _spectrumData[count++];
             }
             average /= samplesToAdd;
             spectrumBlocks[block] = average;
@@ -74,10 +74,5 @@ public class AudioExtractor : MonoBehaviour
                 bufferDecay[i] *= 1.1f;
             }
         }
-    }
-
-    public void setAudioSource(AudioSource a)
-    {
-        _audio = a;
     }
 }
