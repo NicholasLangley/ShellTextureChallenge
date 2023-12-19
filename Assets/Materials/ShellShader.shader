@@ -4,6 +4,7 @@ Shader "Custom/My Shader"
 {
 	Properties {
 		_AudioTex ("Audio Texture", 2D) = "white" {}
+		_AudioTex1D ("Audio Texture 1D", 2D) = "white" {}
 	}
 
 		SubShader
@@ -37,7 +38,10 @@ Shader "Custom/My Shader"
 			float _Attenuation; //How fast the ambientOcclusion takes effect
 			float _OcclusionBias;// adds a bit of bias to the ambient occlusion so it doesn't hit pure black at the bottom shell
 
-			sampler2D _AudioTex; //audio visualizer texture
+			//audio textures to use as a heightmap by the vertex shader
+			sampler2D _AudioTex; //2D audio visualizer texture split into spectrum blocks
+			sampler2D _AudioTex1D; // 1D full spectrum audio visual texture
+			int _TextureSelector; // swap between textures to use
 
 			struct VertexData {
 				float4 position : POSITION;
@@ -69,8 +73,24 @@ Shader "Custom/My Shader"
 				float shellHeight = (float)_ShellIndex / (float)_ShellCount;
 
 				//audio visualizer
-				float4 audioDisplacement = tex2Dlod(_AudioTex, float4(v.uv, 0.0, 0.0));
-				float audioD = 1 + audioDisplacement.r * 5;
+				float4 audioDisplacement = 0;
+				float disBias = 1.0;
+				float audioMult = 5.0;
+				if (_TextureSelector == 0){
+					audioDisplacement = tex2Dlod(_AudioTex, float4(v.uv, 0.0, 0.0)); 
+					audioMult = 5.0;
+				}
+				else {
+					float2 dist = v.uv * 2.0 - 1.0;
+					float dis = length(dist);
+					dis -= 0.2;
+					dis *= 2;
+					if (dis < 0) {audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)); disBias = 1;}
+					else{audioDisplacement = tex2Dlod(_AudioTex1D, float4(dis, 0.0, 0.0, 0.0)); disBias = max(2 - dis/2, 0.5);}
+					if(audioDisplacement.r < 0.05 && dis > 0.8 && dis < 1.2){audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)) * 0.5;}
+					audioMult = 3.0f;
+				}
+				float audioD = 1 + audioDisplacement.r * audioMult * disBias;
 
 				i.position = UnityObjectToClipPos(v.position + (v.normal * shellHeight * _ShellLength * audioD));
 				i.position.xyz += _DisplacementDirection * pow(_DisplacementStrength * shellHeight, _Curvature);
@@ -109,8 +129,19 @@ Shader "Custom/My Shader"
 				ambientOcclusion = saturate(ambientOcclusion);
 
 				//audio visualizer
-				float4 audioDisplacement = tex2Dlod(_AudioTex, float4(i.uv, 0.0, 0.0));
-				float audioD = audioDisplacement.r;
+				float4 audioDisplacement = 0;
+				float disBias = 1.0;
+				if (_TextureSelector == 0){audioDisplacement = tex2Dlod(_AudioTex, float4(i.uv, 0.0, 0.0));}
+				else {
+					float2 dist = i.uv * 2.0 - 1.0;
+					float dis = length(dist);
+					dis -= 0.2;
+					dis *= 2;
+					if (dis < 0 || dis > 1.0) {audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)); disBias = 1;}
+					else{audioDisplacement = tex2Dlod(_AudioTex1D, float4(dis, 0.0, 0.0, 0.0)); disBias = 0.66;}
+					if(audioDisplacement.r < 0.05 && dis > 0.8 && dis < 1.2){audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)) * 0.5;}
+				}
+				float audioD = audioDisplacement.r * disBias;
 				albedo.r += audioD;
 				albedo.b += audioD;
 

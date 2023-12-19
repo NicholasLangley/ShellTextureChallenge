@@ -39,11 +39,16 @@ public class Shell : MonoBehaviour
     //How fast the ambientOcclusion takes effect
     [Range(0.0f, 5.0f)]
     public float occlusionAttenuation = 1.0f;
-   
+
     //bias for ambient Occlusion to be a bit brighter
     [SerializeField]
     [Range(0, 1)]
     public float occlusionBias = 0.0f;
+
+    //Swaps between height map textures to use for audio visualization
+    [SerializeField]
+    [Range(0, 1)]
+    int textureSelector = 0;
 
 
     GameObject[] shells;
@@ -68,6 +73,15 @@ public class Shell : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            textureSelector = 0;
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            textureSelector = 1;
+        }
+
         //NEed to recreate whole array if number of shells changes
         if (shells.Length != shellCount)
         {
@@ -122,7 +136,8 @@ public class Shell : MonoBehaviour
                 shells[i].GetComponent<MeshRenderer>().material.SetFloat("_Curvature", curvature);
                 shells[i].GetComponent<MeshRenderer>().material.SetColor("_ShellColor", shellColor);
                 shells[i].GetComponent<MeshRenderer>().material.SetFloat("_Attenuation", occlusionAttenuation);
-                shells[i].GetComponent<MeshRenderer>().material.SetFloat("_OcclusionBias", occlusionBias);            
+                shells[i].GetComponent<MeshRenderer>().material.SetFloat("_OcclusionBias", occlusionBias);
+                shells[i].GetComponent<MeshRenderer>().material.SetInt("_TextureSelector", textureSelector);
             }
         }
     }
@@ -155,7 +170,8 @@ public class Shell : MonoBehaviour
         for (int i = 0; i < shellCount; ++i)
         {
             //Set shader variables
-            shells[i].GetComponent<MeshRenderer>().material.SetTexture("_AudioTex", audioTex.audioTexture);
+            shells[i].GetComponent<MeshRenderer>().material.SetTexture("_AudioTex", audioTex.AudioTextureDiamond);
+            shells[i].GetComponent<MeshRenderer>().material.SetTexture("_AudioTex1D", audioTex.AudioTexture1D);
         }
             
     }
