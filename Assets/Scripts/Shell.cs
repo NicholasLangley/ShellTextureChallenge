@@ -55,7 +55,6 @@ public class Shell : MonoBehaviour
 
     private Vector3 displacementDirection = new Vector3(0, 0, 0);
 
-    public AudioSource audioSource;
     public AudioTexturizer audioTex;
 
     void OnEnable()

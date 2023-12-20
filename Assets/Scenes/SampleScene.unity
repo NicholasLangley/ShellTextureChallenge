@@ -444,7 +444,7 @@ MonoBehaviour:
   shellMaterial: {fileID: 2100000, guid: 49a9b09a229ad684886159feb6914038, type: 2}
   occlusionAttenuation: 1.95
   occlusionBias: 0.21
-  textureSelector: 0
+  textureSelector: 1
   audioSource: {fileID: 0}
   audioTex: {fileID: 17604050}
 --- !u!4 &1713211292
