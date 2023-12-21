@@ -440,7 +440,7 @@ MonoBehaviour:
   thickness: 1.41
   displacementStrength: 0.775
   curvature: 7.9
-  shellColor: {r: 0.076752275, g: 0.745283, b: 0, a: 0}
+  shellColor: {r: 0, g: 0.745283, b: 0, a: 0}
   shellMesh: {fileID: -462981019419857548, guid: e1fbe5b4851bf26479bd364e44cea8a7, type: 3}
   shellMaterial: {fileID: 2100000, guid: 49a9b09a229ad684886159feb6914038, type: 2}
   occlusionAttenuation: 1.95
