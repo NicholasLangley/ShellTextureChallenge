@@ -138,7 +138,7 @@ Shader "Custom/My Shader"
 					float dis = length(dist);
 					dis -= 0.2;
 					dis *= 2;
-					if (dis < 0) {audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0));}
+					if (dis < 0) {audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)); audioDisplacement.r *= (0.5+_AudioLevel);}
 					else{audioDisplacement = tex2Dlod(_AudioTex1D, float4(dis, 0.0, 0.0, 0.0));}
 					if(audioDisplacement.r < 0.05 && dis > 0.8 && dis < 1.2 || audioDisplacement.r < 0.05 && dis > 1.8){audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)) * 0.5;}
 				}
