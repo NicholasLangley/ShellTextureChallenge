@@ -402,7 +402,8 @@ MonoBehaviour:
   bufferDecay: []
   bufferedSpectrum: []
   bufferDecaySpectrum: []
-  disableOutputSound: 1
+  spectrumArea: 0
+  averageSpectrumArea: 0
 --- !u!1 &1713211290
 GameObject:
   m_ObjectHideFlags: 0
@@ -445,7 +446,6 @@ MonoBehaviour:
   occlusionAttenuation: 1.95
   occlusionBias: 0.21
   textureSelector: 1
-  audioSource: {fileID: 0}
   audioTex: {fileID: 17604050}
 --- !u!4 &1713211292
 Transform:

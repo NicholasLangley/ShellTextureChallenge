@@ -5,9 +5,10 @@ using UnityEngine;
 
 public class AudioExtractor : MonoBehaviour
 {
-    [SerializeField] Lasp.SpectrumAnalyzer _input = null;
+    [SerializeField] Lasp.SpectrumAnalyzer _input;
     [SerializeField] bool _logScale = true;
 
+    [SerializeField]
     public NativeArray<float> _spectrumData;
 
     public int spectrumResolution = 512;
@@ -23,7 +24,10 @@ public class AudioExtractor : MonoBehaviour
 
     int bandSize = 8;
 
-    public bool disableOutputSound = true;
+    public float spectrumArea;
+    public float averageSpectrumArea;
+
+    Queue AverageSpectrumAreaQueue;
 
     void OnEnable()
     {
@@ -37,17 +41,33 @@ public class AudioExtractor : MonoBehaviour
         bufferedSpectrum = new float[spectrumResolution];
         bufferDecaySpectrum = new float[spectrumResolution];
 
+        cleanBlocks();
+        cleanSpectrum();
 
+        AverageSpectrumAreaQueue = new Queue();
+        for (int i = 0; i < 10; i++) { AverageSpectrumAreaQueue.Enqueue(0.0f); }
+        InvokeRepeating("CalculateAverageSpectrumArea", 0.1f, 0.1f);//repeat every 0.1s ~1s lag for loud changes
+    }
+
+    private void OnDisable()
+    {
+        CancelInvoke();
     }
 
     // Update is called once per frame
     void Update()
     {
+        cleanBlocks();
+        cleanSpectrum();
+
         _spectrumData = _logScale ? _input.logSpectrumArray : _input.spectrumArray;
+
         getSpectrumBlocks();
         bufferBlocks();
 
+        augmentSpectrum();
         bufferSpectrum();
+        calculateSpectrumArea();
     }
 
 
@@ -86,6 +106,25 @@ public class AudioExtractor : MonoBehaviour
         }
     }
 
+    void cleanBlocks()
+    {
+        for (int i = 0; i < bandSize; i++)
+        {
+            if (float.IsNaN(spectrumBlocks[i]) || float.IsInfinity(spectrumBlocks[i])) { spectrumBlocks[i] = 0; }
+            if (float.IsNaN(bufferedBlocks[i]) || float.IsInfinity(bufferedBlocks[i])) { bufferedBlocks[i] = 0; }
+        }
+
+    }
+
+    void augmentSpectrum()
+    {
+        for (int i = 0; i < spectrumResolution; i++)
+        {
+            var aug = Mathf.Pow(_spectrumData[i], 1 - _spectrumData[i]);
+            if (!float.IsNaN(aug)) { _spectrumData[i] = aug; }
+        }
+    }
+
     void bufferSpectrum()
     {
         for (int i = 0; i < spectrumResolution; i++)
@@ -102,5 +141,37 @@ public class AudioExtractor : MonoBehaviour
                 if (bufferedSpectrum[i] < 0.0f) { bufferedSpectrum[i] = 0; bufferDecaySpectrum[i] = 0; }
             }
         }
+    }
+
+    void calculateSpectrumArea()
+    {
+        spectrumArea = 0.0f;
+        for (int i = 0; i < spectrumResolution; i++)
+        {
+            spectrumArea += Mathf.Max(_spectrumData[i], 0.00f);
+        }
+        spectrumArea /= spectrumResolution;
+    }
+
+    void CalculateAverageSpectrumArea()
+    {
+        var avg = 0.0f;
+        AverageSpectrumAreaQueue.Dequeue();
+        AverageSpectrumAreaQueue.Enqueue(spectrumArea);
+        foreach(float f in AverageSpectrumAreaQueue)
+        {
+            avg += f;
+        }
+        averageSpectrumArea = avg / AverageSpectrumAreaQueue.Count;
+    }
+
+    void cleanSpectrum()
+    {
+        for (int i = 0; i < spectrumResolution; i++)
+        {
+            if (float.IsNaN(_spectrumData[i]) || float.IsInfinity(_spectrumData[i])) { _spectrumData[i] = 0; }
+            if (float.IsNaN(bufferedSpectrum[i]) || float.IsInfinity(bufferedSpectrum[i])) { bufferedSpectrum[i] = 0; }
+        }
+
     }
 }

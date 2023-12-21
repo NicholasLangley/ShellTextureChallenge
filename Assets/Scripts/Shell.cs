@@ -171,6 +171,7 @@ public class Shell : MonoBehaviour
             //Set shader variables
             shells[i].GetComponent<MeshRenderer>().material.SetTexture("_AudioTex", audioTex.AudioTextureDiamond);
             shells[i].GetComponent<MeshRenderer>().material.SetTexture("_AudioTex1D", audioTex.AudioTexture1D);
+            shells[i].GetComponent<MeshRenderer>().material.SetFloat("_AudioLevel", audioTex._audioExtractor.averageSpectrumArea);
         }
             
     }

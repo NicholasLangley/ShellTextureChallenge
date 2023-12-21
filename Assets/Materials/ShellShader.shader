@@ -43,6 +43,8 @@ Shader "Custom/My Shader"
 			sampler2D _AudioTex1D; // 1D full spectrum audio visual texture
 			int _TextureSelector; // swap between textures to use
 
+			float _AudioLevel; // average normalized audio level for the entire spectrum
+
 			struct VertexData {
 				float4 position : POSITION;
 				float2 uv : TEXCOORD0;
@@ -78,7 +80,7 @@ Shader "Custom/My Shader"
 				float audioMult = 5.0;
 				if (_TextureSelector == 0){
 					audioDisplacement = tex2Dlod(_AudioTex, float4(v.uv, 0.0, 0.0)); 
-					audioMult = 5.0;
+					audioMult = 4;
 				}
 				else {
 					float2 dist = v.uv * 2.0 - 1.0;
@@ -86,11 +88,11 @@ Shader "Custom/My Shader"
 					dis -= 0.2;
 					dis *= 2;
 					if (dis < 0) {audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)); disBias = 1;}
-					else{audioDisplacement = tex2Dlod(_AudioTex1D, float4(dis, 0.0, 0.0, 0.0)); disBias = max(2 - dis/2, 0.5);}
+					else{audioDisplacement = tex2Dlod(_AudioTex1D, float4(dis, 0.0, 0.0, 0.0)); disBias = max(2 - dis, 0.5);}
 					if(audioDisplacement.r < 0.05 && dis > 0.8 && dis < 1.2){audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)) * 0.5;}
-					audioMult = 3.0f;
+					audioMult = 1.5f;
 				}
-				float audioD = 1 + audioDisplacement.r * audioMult * disBias;
+				float audioD = 1 + audioDisplacement.r * (0.75 + 2*_AudioLevel) * audioMult * disBias;
 
 				i.position = UnityObjectToClipPos(v.position + (v.normal * shellHeight * _ShellLength * audioD));
 				i.position.xyz += _DisplacementDirection * pow(_DisplacementStrength * shellHeight, _Curvature);
@@ -142,8 +144,8 @@ Shader "Custom/My Shader"
 					if(audioDisplacement.r < 0.05 && dis > 0.8 && dis < 1.2){audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)) * 0.5;}
 				}
 				float audioD = audioDisplacement.r * disBias;
-				albedo.r += audioD;
-				albedo.b += audioD;
+				albedo.r += audioD * (0.5 + _AudioLevel);
+				albedo.b += audioD * (0.5 + _AudioLevel);
 
 				float3 diffuse = albedo * lightColor * halfLambert * ambientOcclusion;
 				return float4(diffuse, 1);
