@@ -142,7 +142,7 @@ Shader "Custom/My Shader"
 					else{audioDisplacement = tex2Dlod(_AudioTex1D, float4(dis, 0.0, 0.0, 0.0));}
 					if(audioDisplacement.r < 0.05 && dis > 0.8 && dis < 1.2 || audioDisplacement.r < 0.05 && dis > 1.8){audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)) * 0.5;}
 				}
-				float audioD = audioDisplacement.r * shellHeight;
+				float audioD = audioDisplacement.r * 0.8;
 				albedo.r += audioD/1.1;
 				albedo.b += audioD;
 
