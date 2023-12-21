@@ -438,7 +438,7 @@ MonoBehaviour:
   shellLength: 0.26
   shellDensity: 489
   thickness: 1.41
-  displacementStrength: 0.8
+  displacementStrength: 0.775
   curvature: 7.9
   shellColor: {r: 0.076752275, g: 0.745283, b: 0, a: 0}
   shellMesh: {fileID: -462981019419857548, guid: e1fbe5b4851bf26479bd364e44cea8a7, type: 3}

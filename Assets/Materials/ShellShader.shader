@@ -89,7 +89,7 @@ Shader "Custom/My Shader"
 					dis *= 2;
 					if (dis < 0) {audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)); disBias = 1;}
 					else{audioDisplacement = tex2Dlod(_AudioTex1D, float4(dis, 0.0, 0.0, 0.0)); disBias = max(2 - dis, 0.5);}
-					if(audioDisplacement.r < 0.05 && dis > 0.8 && dis < 1.2){audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)) * 0.5;}
+					if(audioDisplacement.r < 0.05 && dis > 0.8 && dis < 1.2 || audioDisplacement.r < 0.05 && dis > 1.8){audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)) * 0.5;}
 					audioMult = 1.5f;
 				}
 				float audioD = 1 + audioDisplacement.r * (0.75 + 2*_AudioLevel) * audioMult * disBias;
@@ -132,18 +132,17 @@ Shader "Custom/My Shader"
 
 				//audio visualizer
 				float4 audioDisplacement = 0;
-				float disBias = 1.0;
 				if (_TextureSelector == 0){audioDisplacement = tex2Dlod(_AudioTex, float4(i.uv, 0.0, 0.0));}
 				else {
 					float2 dist = i.uv * 2.0 - 1.0;
 					float dis = length(dist);
 					dis -= 0.2;
 					dis *= 2;
-					if (dis < 0 || dis > 1.0) {audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)); disBias = 1;}
-					else{audioDisplacement = tex2Dlod(_AudioTex1D, float4(dis, 0.0, 0.0, 0.0)); disBias = 0.66;}
-					if(audioDisplacement.r < 0.05 && dis > 0.8 && dis < 1.2){audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)) * 0.5;}
+					if (dis < 0) {audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0));}
+					else{audioDisplacement = tex2Dlod(_AudioTex1D, float4(dis, 0.0, 0.0, 0.0));}
+					if(audioDisplacement.r < 0.05 && dis > 0.8 && dis < 1.2 || audioDisplacement.r < 0.05 && dis > 1.8){audioDisplacement = tex2Dlod(_AudioTex1D, float4(0.0, 0.0, 0.0, 0.0)) * 0.5;}
 				}
-				float audioD = audioDisplacement.r * disBias;
+				float audioD = audioDisplacement.r;
 				albedo.r += audioD * (0.5 + _AudioLevel);
 				albedo.b += audioD * (0.5 + _AudioLevel);
 
